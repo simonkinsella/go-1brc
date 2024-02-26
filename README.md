@@ -1,3 +1,23 @@
-WIP - 1BRC adapted for Go (no Java)
+1BRC adapted for Go (no Java)
+=============================
 
-The original project: https://github.com/gunnarmorling/1brc
+**Credits:** The original project can be found at https://github.com/gunnarmorling/1brc
+
+Status
+------
+WIP
+
+
+Get started
+-----------
+
+````
+make all
+./cmd/create_measurements 1000000000
+````
+will create a file with the 1 billion records. Allow several minutes and around 12GB of disk space.
+
+
+
+
+
