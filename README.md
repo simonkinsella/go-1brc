@@ -42,6 +42,8 @@ Get coding!
 -----------
 Take a look at my naive 1BRC solution implemented in `/cmd/baseline`. Use the shell script to build and run it.
 
+As a guide, this implementation takes around 18s on my Macbook Pro (M1 Pro)
+
 Create a new directory under `/cmd/` for your own implementation. 
 
 See here for ideas and direction: https://mrkaran.dev/posts/1brc/
