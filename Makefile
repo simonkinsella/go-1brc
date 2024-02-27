@@ -17,7 +17,8 @@ clean: deps fmt
 test:
 	go test ./...
 
-all: clean test build
-
 build:
-	go build -C cmd/create_measurements -o create_measurements .
+	go build -C cmd/create-measurements -o create-measurements .
+	go build -C cmd/baseline/ -o calculate-temps .
+
+all: clean test build
