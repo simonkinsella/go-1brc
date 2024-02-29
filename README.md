@@ -14,7 +14,7 @@ Project layout
 
 `/cmd/baseline` --- Basic implementation of the 1BRC
 
-`/cmd/create_measurements/` --- Tool for creating input files 
+`/cmd/create-measurements/` --- Tool for creating input files 
 
 `/datasets/` --- some smaller input files ready to use, with corresponding result files
 
@@ -29,7 +29,7 @@ Install Go: https://go.dev/dl/
 Build the tool for making input files:  
 ````
 make all
-./cmd/create-measurements [-file <outputfile>] 1000000000
+./cmd/create-measurements/create-measurements [-file <outputfile>] 1000000000
 ````
 
 This will create a file containing 1 billion records as per the 1BRC. Allow several minutes and around 12GB of disk space. 
