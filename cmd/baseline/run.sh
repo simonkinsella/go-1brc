@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -e
-INPUT=measurements-100m.txt
+INPUT=measurements-1k.txt
 
 go build -o calculate-temps .
 go version
