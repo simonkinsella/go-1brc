@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/simonkinsella/go-1brc/internal/station"
 	"log"
 	"os"
 	"slices"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-var stations = map[string]*station{}
+var stations = station.Stations{}
 
 func main() {
 	// Read args
@@ -31,13 +32,13 @@ func main() {
 		temp, _ := strconv.ParseFloat(parts[1], 64)
 		s, exists := stations[parts[0]]
 		if !exists {
-			stations[parts[0]] = &station{}
+			stations[parts[0]] = &station.Station{}
 			s = stations[parts[0]]
 		}
 		s.AddTemp(temp)
 	}
 
-	// Sort station names
+	// Sort Station names
 	names := make([]string, len(stations))
 	i := 0
 	for name, _ := range stations {
@@ -52,9 +53,9 @@ func main() {
 	fmt.Print("{")
 	for i, name := range names {
 		s := stations[name]
-		fmt.Printf("%s=%.1f/%.1f/%.1f", name, s.min, s.Mean(), s.max)
+		fmt.Printf("%s=%.1f/%.1f/%.1f", name, s.Min, s.Mean(), s.Max)
 		if i < numStations-1 {
-			fmt.Print(", ")
+			fmt.Print(",\n")
 		}
 	}
 	fmt.Println("} ")
