@@ -6,15 +6,16 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 	"sync"
 )
 
 const (
-	FileMunchSize = 85
+	FileMunchSize = 1024
 	BatchChanSize = 10
 )
 
-var stations = map[string]*station{}
+//var Stations = map[string]*Station{}
 
 func main() {
 	// Read args
@@ -25,6 +26,21 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 	defer file.Close()
+
+	retCh := make(chan Stations)
+	retWg := sync.WaitGroup{}
+
+	var stations Stations
+	go func() {
+		for stationsBatch := range retCh {
+			if stations == nil {
+				stations = stationsBatch
+			} else {
+				stations.Merge(stationsBatch)
+			}
+			retWg.Done()
+		}
+	}()
 
 	batchChan := make(chan []byte, BatchChanSize)
 	wg := sync.WaitGroup{}
@@ -59,8 +75,13 @@ func main() {
 
 				copy(batch, remains)
 				copy(batch[remainsLen:], munch[:splitPoint])
-				wg.Add(1)
-				batchChan <- batch
+				//wg.Add(1)
+
+				s := ProcessBatch(batch)
+
+				retWg.Add(1)
+				retCh <- s
+				//batchChan <- batch
 
 				remainsLen = bytesRead - splitPoint
 				remains = make([]byte, remainsLen)
@@ -71,12 +92,49 @@ func main() {
 	}
 
 	wg.Wait()
+	retWg.Wait()
 	close(batchChan)
+	close(retCh)
+	// Sort station names
+	names := make([]string, len(stations))
+	i := 0
+	for name, _ := range stations {
+		names[i] = name
+		i++
+	}
+	slices.Sort(names)
 
-	return
+	// Output results
+	numStations := len(names)
+
+	fmt.Print("{")
+	for i, name := range names {
+		s := stations[name]
+		fmt.Printf("%s=%.1f/%.1f/%.1f", name, s.min, s.Mean(), s.max)
+		if i < numStations-1 {
+			fmt.Print(",\n")
+		}
+	}
+	fmt.Println("} ")
 }
 
-func ProcessBatch(batch []byte) {
-	fmt.Print(string(batch))
-}
+func ProcessBatch(batch []byte) Stations {
+	stations := Stations{}
+	start := 0
+	var name, temp string
+	batchLen := len(batch)
+	for i, v := range batch {
 
+		if v == ';' {
+			name = string(batch[start:i])
+			start = i + 1
+			continue
+		}
+		if v == '\n' || i+1 == batchLen {
+			temp = string(batch[start:i])
+			stations.Add(name, temp)
+			start = i + 1
+		}
+	}
+	return stations
+}
