@@ -1,4 +1,4 @@
-package main
+package station
 
 import (
 	"testing"
@@ -66,12 +66,12 @@ func TestStation(t *testing.T) {
 		s := &Station{}
 		testCase.scenario(s)
 
-		if testCase.expectedMin != s.min {
-			t.Logf("Scenario %d: Expected Station.min to be %f (got %f)", i, testCase.expectedMin, s.min)
+		if testCase.expectedMin != s.Min {
+			t.Logf("Scenario %d: Expected Station.Min to be %f (got %f)", i, testCase.expectedMin, s.Min)
 			t.Fail()
 		}
-		if testCase.expectedMax != s.max {
-			t.Logf("Scenario %d: Expected Station.max to be %f (got %f)", i, testCase.expectedMax, s.max)
+		if testCase.expectedMax != s.Max {
+			t.Logf("Scenario %d: Expected Station.Max to be %f (got %f)", i, testCase.expectedMax, s.Max)
 			t.Fail()
 		}
 		if testCase.expectedTotal != s.total {
@@ -84,8 +84,23 @@ func TestStation(t *testing.T) {
 		}
 		mean := s.Mean()
 		if testCase.expectedMean != mean {
-			t.Logf("Scenario %d: Expected to Station.mean() to be %f (got %f)", i, testCase.expectedMean, mean)
+			t.Logf("Scenario %d: Expected to Station.Mean() to be %f (got %f)", i, testCase.expectedMean, mean)
 			t.Fail()
 		}
+	}
+}
+
+func TestEdgeCase(t *testing.T) {
+	s := &Station{
+		Min:   7.3,
+		Max:   36.0,
+		count: 8,
+		total: 174.800000,
+	}
+	res := s.Mean()
+	expected := 21.85
+	if res != expected {
+		t.Logf("Expected Mean() to return %f, but got %f", expected, res)
+		t.Fail()
 	}
 }

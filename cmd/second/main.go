@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/simonkinsella/go-1brc/internal/station"
 	"io"
 	"log"
 	"os"
@@ -11,11 +12,10 @@ import (
 )
 
 const (
-	FileMunchSize = 1024
+	FileMunchSize = 1024 * 1024
 	BatchChanSize = 10
+	retChanSize   = 1000
 )
-
-//var Stations = map[string]*Station{}
 
 func main() {
 	// Read args
@@ -27,12 +27,12 @@ func main() {
 	}
 	defer file.Close()
 
-	retCh := make(chan Stations)
+	retChan := make(chan station.Stations, retChanSize)
 	retWg := sync.WaitGroup{}
 
-	var stations Stations
+	var stations station.Stations
 	go func() {
-		for stationsBatch := range retCh {
+		for stationsBatch := range retChan {
 			if stations == nil {
 				stations = stationsBatch
 			} else {
@@ -43,12 +43,10 @@ func main() {
 	}()
 
 	batchChan := make(chan []byte, BatchChanSize)
-	wg := sync.WaitGroup{}
-
 	go func() {
 		for batch := range batchChan {
-			go ProcessBatch(batch)
-			wg.Done()
+			go ProcessBatch(batch, retChan)
+			retWg.Add(1)
 		}
 	}()
 
@@ -75,13 +73,7 @@ func main() {
 
 				copy(batch, remains)
 				copy(batch[remainsLen:], munch[:splitPoint])
-				//wg.Add(1)
-
-				s := ProcessBatch(batch)
-
-				retWg.Add(1)
-				retCh <- s
-				//batchChan <- batch
+				batchChan <- batch
 
 				remainsLen = bytesRead - splitPoint
 				remains = make([]byte, remainsLen)
@@ -90,11 +82,10 @@ func main() {
 			}
 		}
 	}
-
-	wg.Wait()
-	retWg.Wait()
 	close(batchChan)
-	close(retCh)
+
+	retWg.Wait()
+	close(retChan)
 	// Sort station names
 	names := make([]string, len(stations))
 	i := 0
@@ -110,7 +101,7 @@ func main() {
 	fmt.Print("{")
 	for i, name := range names {
 		s := stations[name]
-		fmt.Printf("%s=%.1f/%.1f/%.1f", name, s.min, s.Mean(), s.max)
+		fmt.Printf("%s=%.1f/%.1f/%.1f", name, s.Min, s.Mean(), s.Max)
 		if i < numStations-1 {
 			fmt.Print(",\n")
 		}
@@ -118,8 +109,8 @@ func main() {
 	fmt.Println("} ")
 }
 
-func ProcessBatch(batch []byte) Stations {
-	stations := Stations{}
+func ProcessBatch(batch []byte, retCh chan station.Stations) {
+	stations := station.Stations{}
 	start := 0
 	var name, temp string
 	batchLen := len(batch)
@@ -136,5 +127,5 @@ func ProcessBatch(batch []byte) Stations {
 			start = i + 1
 		}
 	}
-	return stations
+	retCh <- stations
 }
